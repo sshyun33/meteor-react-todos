@@ -7,7 +7,7 @@ pipeline {
   environment {
         DOCKER_HOST = 'tcp://10.146.0.2:2375'
         DOCKER_STACK_NAME = 'meteor-todos'
-	DOCKER_STACK_FILE = 'ci-cd/docker-compose.yml'
+	DOCKER_STACK_FILE = 'ci_cd/docker-compose.yml'
     }
 
   stages {
