@@ -6,7 +6,7 @@ services:
     build:
       context: ../
       dockerfile: ci_cd/Dockerfile
-    image: sshyun33/meteor-todos:1.0
+    image: meteor-todos-app
     ports:
       - "80:3000"
     environment:

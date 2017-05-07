@@ -1,50 +1,58 @@
 pipeline {
   agent any
-  // triggers {
-  //   cron('H/5 * * * *')
-  //}
-
+  
   environment {
-        DOCKER_HOST = 'tcp://10.146.0.2:2375'
-        DOCKER_STACK_NAME = 'meteor-todos'
-	DOCKER_STACK_FILE = 'ci_cd/docker-compose.yml'
-    }
+        DOCKER_HOST = '10.146.0.2:2375'
+        DOCKER_COMPOSE_FILE = 'ci_cd/docker-compose.yml'
+        DOCKER_REGISTRY = 'asia.gcr.io/my-project-01-157810'
+        DOCKER_IMAGE = 'meteor-todos-app'
+        VERSION = "1.0.${BUILD_NUMBER}"
+        DOCKER_STACK = 'meteor-todos'
+  }
 
   stages {
-    stage("Build") {
+    stage("Ready") {
       steps {
-        echo "echo 'Build docker image...'"
+        sh "/usr/local/bin/meteor npm install"
       }
     }
-
     stage("Unit") {
       steps {
-        echo "echo 'Unit testing...'"
+        echo "Unit testing phase."
       }
     }
-
     stage("Integ") {
       steps {
-        echo "echo 'Integration testing...'"
+        echo "Integration testing phase."
+        sh "/usr/local/bin/meteor test --once --driver-package dispatch:mocha"
       }
     }
-
     stage("Publish") {
       steps {
-        echo "echo 'Publish image to registry...'"
+        sh "/usr/local/bin/docker-compose -f ${DOCKER_COMPOSE_FILE} build app"
+        sh "docker tag ${DOCKER_IMAGE} ${DOCKER_REGISTRY}/${DOCKER_IMAGE}"
+        sh "docker tag ${DOCKER_IMAGE} ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${VERSION}"
+        sh "gcloud docker -- push ${DOCKER_REGISTRY}/${DOCKER_IMAGE}"
+        sh "gcloud docker -- push ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${VERSION}"
       }
     }
-
-    stage("Deploy") {
+    stage("Prod-like") {
       steps {
-        sh "docker stack deploy --compose-file ${DOCKER_STACK_FILE} ${DOCKER_STACK_NAME}"
+        echo "A production-like cluster is yet to be created"
+      }
+    }
+    stage("Production") {
+      steps {
+        echo "Producton phase."
+        sh "docker service update --image ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${VERSION} ${DOCKER_STACK}_app"
       }
     }
   }
-
+  
   post {
     always {
-      echo "echo 'finished...'"
+        echo "This pipeline has finished."
+        deleteDir()
     }
   }
 }
