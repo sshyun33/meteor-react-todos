@@ -4,14 +4,16 @@ phases:
   install:
     commands:
       - echo install phase start
-      - $(aws ecr get-login --region $AWS_DEFAULT_REGION)
   pre_build:
     commands:
-      - echo pre_build phase start
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION)
   build:
     commands:
-      - echo build phase start
-      - docker build --build-arg TOOL_NODE_FLAGS="--max-old-space-size=2048" -f ci_cd/Dockerfile -t mymeteor:latest .
+      - echo Build started on `date`
+      - docker build --build-arg TOOL_NODE_FLAGS="--max-old-space-size=2048" -f ci_cd/Dockerfile -t $IMAGE_NAME .
+      - docker tag $IMAGE_NAME $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
   post_build:
     commands:
-      - echo post_build phase start
+      - echo Build completed on `date`
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
