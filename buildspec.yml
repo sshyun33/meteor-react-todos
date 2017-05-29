@@ -4,6 +4,7 @@ phases:
   install:
     commands:
       - echo install phase start
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION)
   pre_build:
     commands:
       - echo pre_build phase start
